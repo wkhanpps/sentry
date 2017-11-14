@@ -181,11 +181,13 @@ class UnmergeTestCase(TestCase):
             },
         ])
 
+        environment = Environment.objects.create(
+            organization_id=project.organization_id,
+            name='production',
+        )
+
         EnvironmentProject.objects.create(
-            environment=Environment.objects.create(
-                organization_id=project.organization_id,
-                name='production',
-            ),
+            environment=environment,
             project=project,
         )
 
@@ -463,6 +465,15 @@ class UnmergeTestCase(TestCase):
             rollup_duration,
         )
 
+        environment_time_series = tsdb.get_range(
+            tsdb.models.group,
+            [source.id, destination.id],
+            now - timedelta(seconds=rollup_duration),
+            now + shift(16),
+            rollup_duration,
+            environment_id=environment.id,
+        )
+
         def get_expected_series_values(rollup, events, function=None):
             if function is None:
 
@@ -485,17 +496,18 @@ class UnmergeTestCase(TestCase):
             for key in set(actual.keys()) - set(expected.keys()):
                 assert actual.get(key, 0) == default
 
-        assert_series_contains(
-            get_expected_series_values(rollup_duration, events.values()[0]),
-            time_series[source.id],
-            0,
-        )
+        for series in [time_series, environment_time_series]:
+            assert_series_contains(
+                get_expected_series_values(rollup_duration, events.values()[0]),
+                series[source.id],
+                0,
+            )
 
-        assert_series_contains(
-            get_expected_series_values(rollup_duration, events.values()[1]),
-            time_series[destination.id],
-            0,
-        )
+            assert_series_contains(
+                get_expected_series_values(rollup_duration, events.values()[1]),
+                series[destination.id],
+                0,
+            )
 
         time_series = tsdb.get_distinct_counts_series(
             tsdb.models.users_affected_by_group,
@@ -503,6 +515,15 @@ class UnmergeTestCase(TestCase):
             now - timedelta(seconds=rollup_duration),
             now + shift(16),
             rollup_duration,
+        )
+
+        environment_time_series = tsdb.get_distinct_counts_series(
+            tsdb.models.users_affected_by_group,
+            [source.id, destination.id],
+            now - timedelta(seconds=rollup_duration),
+            now + shift(16),
+            rollup_duration,
+            environment_id=environment.id,
         )
 
         def collect_by_user_tag(aggregate, event):
@@ -514,29 +535,30 @@ class UnmergeTestCase(TestCase):
             )
             return aggregate
 
-        assert_series_contains(
-            {
-                timestamp: len(values)
-                for timestamp, values in get_expected_series_values(
-                    rollup_duration,
-                    events.values()[0],
-                    collect_by_user_tag,
-                ).items()
-            },
-            time_series[source.id],
-        )
+        for series in [time_series, environment_time_series]:
+            assert_series_contains(
+                {
+                    timestamp: len(values)
+                    for timestamp, values in get_expected_series_values(
+                        rollup_duration,
+                        events.values()[0],
+                        collect_by_user_tag,
+                    ).items()
+                },
+                series[source.id],
+            )
 
-        assert_series_contains(
-            {
-                timestamp: len(values)
-                for timestamp, values in get_expected_series_values(
-                    rollup_duration,
-                    events.values()[1],
-                    collect_by_user_tag,
-                ).items()
-            },
-            time_series[destination.id],
-        )
+            assert_series_contains(
+                {
+                    timestamp: len(values)
+                    for timestamp, values in get_expected_series_values(
+                        rollup_duration,
+                        events.values()[1],
+                        collect_by_user_tag,
+                    ).items()
+                },
+                time_series[destination.id],
+            )
 
         time_series = tsdb.get_most_frequent_series(
             tsdb.models.frequent_releases_by_group,
