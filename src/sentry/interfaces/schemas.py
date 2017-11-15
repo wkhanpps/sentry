@@ -97,6 +97,7 @@ FRAME_INTERFACE_SCHEMA = {
         'image_addr': {},
         'in_app': {'type': 'boolean', 'default': False},
         'instruction_addr': {},
+        'instruction_offset': {},
         'lineno': {'type': ['number', 'string']},
         'module': {
             'type': 'string',
@@ -109,6 +110,7 @@ FRAME_INTERFACE_SCHEMA = {
         },
         'post_context': {},
         'pre_context': {},
+        'project_root': {},
         'symbol': {'type': 'string'},
         'symbol_addr': {},
         'vars': {
@@ -135,7 +137,7 @@ FRAME_INTERFACE_SCHEMA = {
         {'required': ['module']},
         {'required': ['package']},
     ],
-    'additionalProperties': False,
+    'additionalProperties': True,
 }
 
 STACKTRACE_INTERFACE_SCHEMA = {
