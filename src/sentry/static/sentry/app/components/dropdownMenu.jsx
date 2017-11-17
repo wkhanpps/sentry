@@ -184,10 +184,14 @@ class DropdownMenu extends React.Component {
         if (!isNestedDropdown) return;
         this.handleMouseLeave(...args);
       },
-      onClick: (...args) => {
-        this.handleDropdownMenuClick(...args);
+      onClick: e => {
+        if (!isNestedDropdown) {
+          this.handleDropdownMenuClick(e);
+        } else {
+          e.stopPropagation();
+        }
         if (typeof onClick === 'function') {
-          onClick(...args);
+          onClick(e);
         }
       },
     };
