@@ -2,18 +2,18 @@ import {t} from '../../../locale';
 
 const pathPrefix = '/settings/organization/:orgId';
 
-const organizationNavgiation = [
+const organizationNavigation = [
   {
     name: 'Organization',
     items: [
       {
-        path: `${pathPrefix}/teams/`,
-        title: t('Projects & Teams'),
-      },
-      {
         path: `${pathPrefix}/settings/`,
         title: 'General Settings',
         show: ({access}) => access.has('org:write'),
+      },
+      {
+        path: `${pathPrefix}/teams/`,
+        title: t('Projects & Teams'),
       },
       {
         path: `${pathPrefix}/members/`,
@@ -23,7 +23,7 @@ const organizationNavgiation = [
           if (!access.has('org:write')) return null;
           if (organization.pendingAccessRequests <= 0) return null;
 
-          return organization.pendingAccessRequests;
+          return `${organization.pendingAccessRequests}`;
         },
         show: ({access}) => access.has('org:read'),
       },
@@ -62,4 +62,4 @@ const organizationNavgiation = [
   },
 ];
 
-export default organizationNavgiation;
+export default organizationNavigation;
