@@ -212,6 +212,8 @@ const orgSettingsRoutes = [
     allTeams
     component={errorHandler(OrganizationTeams)}
   />,
+
+  <Route key="org-stats" path="stats/" component={errorHandler(OrganizationStats)} />,
 ];
 
 const projectSettingsRoutes = [
@@ -426,10 +428,6 @@ function routes() {
         <Route
           path="/organizations/:orgId/projects/choose/"
           component={errorHandler(ProjectChooser)}
-        />
-        <Route
-          path="/organizations/:orgId/stats/"
-          component={errorHandler(OrganizationStats)}
         />
 
         <Route
